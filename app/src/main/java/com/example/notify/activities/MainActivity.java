@@ -2,12 +2,19 @@ package com.example.notify.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.example.notify.R;
+import com.example.notify.database.NotesDatabase;
+import com.example.notify.entities.Note;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     ImageView imageAddNoteMain;
@@ -25,10 +32,29 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, CreateNoteActivity.class));
             }
         });
+        getNotes();
     }
 
+    private void getNotes(){
+        @SuppressLint("StaticFieldLeak")
+        class GetNotesTask extends AsyncTask<Void ,Void , List<Note>>{
+
+            @Override
+            protected List<Note> doInBackground(Void... voids) {
+                return NotesDatabase
+                        .getDatabase(getApplicationContext())
+                        .noteDao().getAllNotes();
+            }
+
+            @Override
+            protected void onPostExecute(List<Note> notes) {
+                super.onPostExecute(notes);
+                Log.d("MY_NOTES",notes.toString());
+            }
+        }
+        new GetNotesTask().execute();
+    }
     private void initialize_fields() {
         imageAddNoteMain=findViewById(R.id.imageAddNoteMain);
-
     }
 }
