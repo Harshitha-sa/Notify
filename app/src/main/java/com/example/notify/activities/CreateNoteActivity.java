@@ -2,6 +2,7 @@ package com.example.notify.activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -14,12 +15,16 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Patterns;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,6 +40,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 public class CreateNoteActivity extends AppCompatActivity {
 
@@ -46,6 +52,11 @@ public class CreateNoteActivity extends AppCompatActivity {
     View viewSubtitleIndicator;
     ImageView imageNote;
     String selectedImagePath;
+    TextView textWebUrl;
+    LinearLayout layoutWebUrl;
+
+    AlertDialog dialogAddUrl;
+
     private static final int REQUEST_CODE_STORAGE_PERMISSION=1;
     private static final int REQUEST_CODE_SELECT_IMAGE=2;
     @Override
@@ -93,6 +104,9 @@ public class CreateNoteActivity extends AppCompatActivity {
         note.setColor(selectNoteColor);
         note.setImagePath(selectedImagePath);
 
+        if(layoutWebUrl.getVisibility()==View.VISIBLE){
+            note.setWebLink(textWebUrl.getText().toString());
+        }
 
         @SuppressLint("StaticFieldLeak")
         class SaveNoteTask extends AsyncTask<Void, Void ,Void>{
@@ -215,7 +229,13 @@ public class CreateNoteActivity extends AppCompatActivity {
             }
         });
 
-
+        layoutMiscellaneous.findViewById(R.id.layoutAddUrl).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                showAddUrlDialog();
+            }
+        });
 
 
 
@@ -281,6 +301,46 @@ public class CreateNoteActivity extends AppCompatActivity {
         }
         return filePath;
     }
+
+    private void showAddUrlDialog(){
+        if (dialogAddUrl==null){
+            AlertDialog.Builder builder=new AlertDialog.Builder(CreateNoteActivity.this);
+            View view=LayoutInflater.from(this).inflate(
+                    R.layout.layout_add_url,
+            (ViewGroup)findViewById(R.id.layoutAddUrlContainer)
+            );
+            builder.setView(view);
+            dialogAddUrl=builder.create();
+            if(dialogAddUrl.getWindow()!=null){
+                dialogAddUrl.getWindow().setBackgroundDrawable(new ColorDrawable((0)));
+            }
+
+            final EditText inputURL = view.findViewById(R.id.inputURL);
+            inputURL.requestFocus();
+
+            view.findViewById(R.id.textAdd).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(inputURL.getText().toString().trim().isEmpty()){
+                        Toast.makeText(CreateNoteActivity.this, "Enter URL", Toast.LENGTH_SHORT).show();
+                    }else if(!Patterns.WEB_URL.matcher(inputURL.getText().toString()).matches()){
+                        Toast.makeText(CreateNoteActivity.this, "Enter Valid URL", Toast.LENGTH_SHORT).show();
+                    }else {
+                        textWebUrl.setText(inputURL.getText().toString());
+                        layoutWebUrl.setVisibility(View.VISIBLE);
+                        dialogAddUrl.dismiss();
+                    }
+                }
+            });
+         view.findViewById(R.id.textCancel).setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View view) {
+                 dialogAddUrl.dismiss();
+             }
+         });
+        }
+        dialogAddUrl.show();
+    }
     private void initializefields() {
         imageBack=findViewById(R.id.image_back);
         inputNoteTitle=findViewById(R.id.inputNoteTitle);
@@ -290,5 +350,8 @@ public class CreateNoteActivity extends AppCompatActivity {
         imageSave=findViewById(R.id.saveImage);
         viewSubtitleIndicator=findViewById(R.id.viewSubtitleIndicator);
         imageNote=findViewById(R.id.imageNote);
+        textWebUrl=findViewById(R.id.textWenURL);
+        layoutWebUrl=findViewById(R.id.layoutWebUrl);
+
     }
 }
