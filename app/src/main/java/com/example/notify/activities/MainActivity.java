@@ -9,8 +9,11 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.example.notify.R;
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements NotesListener {
     List<Note> noteList;
     NotesAdapter notesAdapter;
     private int noteClickedPosition=-1;
+    EditText inputSeardh;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +57,25 @@ public class MainActivity extends AppCompatActivity implements NotesListener {
         notesRecyclerView.setAdapter(notesAdapter);
 
         getNotes(REQUEST_CODE_SHOW_NOTES,false);
+
+        inputSeardh.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                notesAdapter.cancelTimer();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (noteList.size()!=0){
+                    notesAdapter.searchNotes(editable.toString());
+                }
+            }
+        });
     }
 
     @Override
@@ -115,5 +138,6 @@ public class MainActivity extends AppCompatActivity implements NotesListener {
     private void initialize_fields() {
         imageAddNoteMain=findViewById(R.id.imageAddNoteMain);
         notesRecyclerView=findViewById(R.id.notesRecyclerView);
+        inputSeardh=findViewById(R.id.inputSearch);
     }
 }
